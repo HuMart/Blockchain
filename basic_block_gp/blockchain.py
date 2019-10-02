@@ -231,6 +231,15 @@ def full_chain():
     }
     return jsonify(response), 200
 
+@app.route('/valid_chain', methods=['GET'])
+def validate_chain():
+    result = blockchain.valid_chain(blockchain.chain)
+
+    response = {
+        'validity': result
+    }
+    return jsonify(response), 200
+
 
 # Run the program on port 5000
 if __name__ == '__main__':
