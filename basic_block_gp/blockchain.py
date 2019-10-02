@@ -177,7 +177,8 @@ def mine():
 
     # Forge the new Block by adding it to the chain
     # TODO
-
+    previous_hash = blockchain.hash(blockchain.last_block)
+    block = blockchain.new_block(proof, previous_hash)
     # Send a response with the new block
     response = {
         'message': "New Block Forged",
