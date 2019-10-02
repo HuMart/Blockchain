@@ -93,8 +93,16 @@ class Blockchain(object):
         :return: A valid proof for the provided block
         """
         # TODO
-        pass
+        # pass
         # return proof
+
+        block_string = json.dumps(block, sort_keys=True).encode()
+
+        proof = 0
+        while self.valid_proof(block_string, proof) is False:
+            proof += 1
+
+        return proof
 
     @staticmethod
     def valid_proof(block_string, proof):
@@ -109,8 +117,13 @@ class Blockchain(object):
         :return: True if the resulting hash is a valid proof, False otherwise
         """
         # TODO
-        pass
+        # pass
         # return True or False
+        guess = f"{block_string}{proof}".encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+        
+        # TODO: Change back to 6 zeroes
+        return guess_hash[:3] == "000"
 
     def valid_chain(self, chain):
         """
@@ -154,7 +167,7 @@ blockchain = Blockchain()
 @app.route('/mine', methods=['GET'])
 def mine():
     # We run the proof of work algorithm to get the next proof...
-    proof = blockchain.proof_of_work()
+    proof = blockchain.proof_of_work(blockchain.last_block)
 
     # We must receive a reward for finding the proof.
     # TODO:
@@ -172,6 +185,7 @@ def mine():
         'transactions': block['transactions'],
         'proof': block['proof'],
         'previous_hash': block['previous_hash'],
+        # "message": f"proof found: {proof}"
     }
     return jsonify(response), 200
 
