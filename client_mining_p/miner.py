@@ -7,7 +7,7 @@ import time
 
 def search_proof(block):
     
-    block_string = json.dumps(block, sort_keys=Trur).encode()
+    block_string = json.dumps(block, sort_keys=True).encode()
     
     proof = 0
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
             proof = search_proof(res['last_block'])
             print(f"proof {proof}")
 
-            res = requests.post(node + "/mine", {"proof": proof})
+            res = requests.post(node + "/mine", json={"proof": proof})
             res_content = json.loads(res.content)
 
             if res.status_code == 200 and res_content['message'] == "New Block Forged":
@@ -51,8 +51,8 @@ if __name__ == '__main__':
             else:
                 print(res_content['message'])
 
-    except:
-        print("Finish Mining")
+    except Exception as e:
+        print("Finish Mining", e)
         t_stop = time.process_time()
         print("Time Mining: %.1f seconds" % ((t_stop-t_start)))
     

@@ -156,14 +156,19 @@ blockchain = Blockchain()
 
 @app.route('/mine', methods=['POST'])
 def mine():
-    values = request.get_json()
-    print(f"values: {values}")
-    proof = 0 
+    values = request.json
 
-    block_string = json.dumps(blockchain.last_block, sort_keys=True).encode()
-    is_valid = blockchain.valid_proof(block_string, proof)
+    if 'proof' in values:
+        proof = values['proof']
 
-    if is_valid:
+        block_string = json.dumps(blockchain.last_block, sort_keys=True).encode()
+        is_valid = blockchain.valid_proof(block_string, proof)
+
+    else:
+        proof = None
+
+    if proof and is_valid:
+
         blockchain.new_transaction(
            sender = "0",
            recipient = node_identifier,
