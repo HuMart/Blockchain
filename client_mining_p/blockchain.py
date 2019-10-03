@@ -1,5 +1,3 @@
-# Paste your version of blockchain.py from the basic_block_gp
-# folder here
 import hashlib
 import json
 from time import time
@@ -86,22 +84,6 @@ class Blockchain(object):
     def last_block(self):
         return self.chain[-1]
 
-    # def proof_of_work(self, block):
-    #     """
-    #     Simple Proof of Work Algorithm
-    #     Find a number p such that hash(last_block_string, p) contains 6 leading
-    #     zeroes
-    #     :return: A valid proof for the provided block
-    #     """
-
-    #     block_string = json.dumps(block, sort_keys=True).encode()
-
-    #     proof = 0
-    #     while self.valid_proof(block_string, proof) is False:
-    #         proof += 1
-
-    #     return proof
-
     @staticmethod
     def valid_proof(block_string, proof):
         """
@@ -130,6 +112,8 @@ class Blockchain(object):
         :param chain: <list> A blockchain
         :return: <bool> True if valid, False if not
         """
+
+        # TODO: Unable to test implementation, test when possible
 
         prev_block = chain[0]
         current_index = 1
@@ -172,40 +156,47 @@ blockchain = Blockchain()
 
 @app.route('/mine', methods=['POST'])
 def mine():
-    # We run the proof of work algorithm to get the next proof...
-    proof = blockchain.proof_of_work(blockchain.last_block)
+    values = request.get_json()
+    print(f"values: {values}")
+    proof = 0 
 
-    # We must receive a reward for finding the proof.
-    # TODO:
-    # The sender is "0" to signify that this node has mine a new coin
-    # The recipient is the current node, it did the mining!
-    # The amount is 1 coin as a reward for mining the next block
-    blockchain.new_transaction(
-        sender = "0",
-        recipient = node_identifier,
-        amount = 1,
-    )
-    # Forge the new Block by adding it to the chain
+    block_string = json.dumps(blockchain.last_block, sort_keys=True).encode()
+    is_valid = blockchain.valid_proof(block_string, proof)
+
+    if is_valid:
+        blockchain.new_transaction(
+           sender = "0",
+           recipient = node_identifier,
+           amount = 1,
+        )
+   
     
-    previous_hash = blockchain.hash(blockchain.last_block)
-    block = blockchain.new_block(proof, previous_hash)
-    # Send a response with the new block
-    response = {
-        'message': "New Block Forged",
-        'index': block['index'],
-        'transactions': block['transactions'],
-        'proof': block['proof'],
-        'previous_hash': block['previous_hash'],
-        # "message": f"proof found: {proof}"
-    }
-    return jsonify(response), 200
+        previous_hash = blockchain.hash(blockchain.last_block)
+        block = blockchain.new_block(proof, previous_hash)
+    
+        response = {
+            'message': "New Block Forged",
+            'index': block['index'],
+            'transactions': block['transactions'],
+            'proof': block['proof'],
+            'previous_hash': block['previous_hash'],
+        }
+
+        return jsonify(response), 200
+    else:
+        response = {
+            "message": "Proof rejected"
+        }
+        return jsonify(response), 400
 
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
     values = request.get_json()
 
-    # Check that the required fields are in the POST'ed data
+    if values is None:
+        return "Missing Values", 400
+
     required = ['sender', 'recipient', 'amount']
     if not all(k in values for k in required):
         return 'Missing Values', 400
@@ -222,8 +213,8 @@ def new_transaction():
 @app.route('/chain', methods=['GET'])
 def full_chain():
     response = {
-        # Return the chain and its current length
-        'chain': blockchain.chain
+        'chain': blockchain.chain,
+        'length': len(blockchain.chain)
     }
     return jsonify(response), 200
 
@@ -236,10 +227,10 @@ def validate_chain():
     }
     return jsonify(response), 200
 
-@app.route('/last_block', methods=["GET"])
+@app.route('/last_block', methods=['GET'])
 def last_block():
     result = blockchain.last_block
-
+    
     response = {
         'last_block': result
     }
